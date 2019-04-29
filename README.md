@@ -6,3 +6,4 @@ Add media type like this
 
 Or with emergency mode (check https://pushover.net/api#priority Emergency Priority )
 
+![with-emergency.png](with-emergency.png?raw=true "with-emergency")
