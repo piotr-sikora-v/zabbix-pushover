@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import http.client, urllib
-import argparse, sys
+import argparse, sys, re
 
 parser = argparse.ArgumentParser(description='Send Zabbix notification to Pushover enabled devices.')
 parser.add_argument('appkey', type=str, help='Application Token/Key')
@@ -17,6 +17,38 @@ app_token = args.appkey
 user_key = args.userkey
 subject = args.subject
 message = args.message
+emergency = args.emergency
+
+prio = 0
+s = None
+
+for line in message.splitlines():
+    x = re.findall("^Severity: ", line)
+    if(x):
+        s = line.split(": ")[1]
+        print(s)
+
+if(s == 'Not classified'):
+    prio = -2
+elif (s == 'Information'):
+    prio = -1
+elif (s == 'Warning'):
+    prio = 0
+elif (s == 'Average'):
+    pior = 1
+elif (s == 'High'):
+    prio = 1
+elif (s == 'Disaster'):
+    if (emergency != False):
+        prio = 2
+    else:
+        prio = 1
+
+
+x = re.findall("^Resolved: ", subject)
+if(x):
+    prio = -1
+
 
 conn = http.client.HTTPSConnection("api.pushover.net:443")
 conn.request("POST", "/1/messages.json",
@@ -24,6 +56,8 @@ conn.request("POST", "/1/messages.json",
     "token": app_token,
     "user": user_key,
     "message": message,
+    "title": subject,
+    "priority": prio,
     "html": 1,
   }), { "Content-type": "application/x-www-form-urlencoded" })
 print(conn.getresponse())
